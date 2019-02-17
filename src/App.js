@@ -39,11 +39,15 @@ class App extends Component {
     super(props);
     this.state = {
       expression: '0',
-      result: 0
+      result: 0,
+      isCalculated: false,
+      isClicked: false
     };
     this.onClickNumber = this.onClickNumber.bind(this);
     this.onClickReset = this.onClickReset.bind(this);
     this.onClickOperator = this.onClickOperator.bind(this);
+    this.onClickCalculate = this.onClickCalculate.bind(this);
+    this.onClickDot = this.onClickDot.bind(this);
   }
 
   onClickNumber(number) {
@@ -51,21 +55,113 @@ class App extends Component {
       if (prevState.expression == '0') {
         return {
           expression: number,
-          result: number
+          result: number,
+          isCalculated: false,
+          isClicked: true
+        };
+      }
+      if (prevState.isCalculated) {
+        return {
+          expression: number,
+          result: number,
+          isCalculated: false,
+          isClicked: true
         };
       }
       return {
         expression: prevState.expression + number,
-        result: prevState.expression + number
+        result: prevState.expression + number,
+        isCalculated: false,
+        isClicked: true
       };
     });
   }
 
   onClickOperator(op) {
+    if (!this.state.isClicked) {
+      this.setState({
+        expression: op,
+        result: op,
+        isCalculated: false,
+        isClicked: true
+      });
+      return;
+    }
     this.setState((prevState) => {
+      if (prevState.isCalculated) {
+        return {
+          expression: prevState.result + op,
+          result: op,
+          isCalculated: false,
+          isClicked: true
+        };
+      }
+      let length = prevState.expression.length;
+      if (isNaN(prevState.expression[length - 1])) {
+        return {
+          expression: prevState.expression.split('').slice(0, length - 1).join('') + op,
+          result: op,
+          isCalculated: false,
+          isClicked: true
+        };
+      }
       return {
         expression: prevState.expression + op,
-        result: op
+        result: op,
+        isCalculated: false,
+        isClicked: true
+      };
+    });
+  }
+
+  onClickDot(op) {
+    this.setState((prevState) => {
+      let length = prevState.expression.length;
+      if (!prevState.isClicked) {
+        return {
+          expression: '0' + op,
+          result: '0' + op,
+          isCalculated: false,
+          isClicked: true
+        };
+      }
+      if (isNaN(prevState.expression[length - 1])) {
+        return {
+          expression: prevState.result + '0' + op,
+          result: '0' + op,
+          isCalculated: false,
+          isClicked: true
+        };
+      }
+      if (prevState.isCalculated) {
+        return {
+          expression: prevState.result + op,
+          result: op,
+          isCalculated: false,
+          isClicked: true
+        };
+      }
+
+      return {
+        expression: prevState.expression + op,
+        result: op,
+        isCalculated: false,
+        isClicked: true
+      };
+    });
+  }
+
+  onClickCalculate() {
+    if (!this.state.isClicked) {
+      return;
+    }
+    this.setState((prevState) => {
+      let result = eval(prevState.expression);
+      return {
+        expression: prevState.expression + '=' + result,
+        result: result,
+        isCalculated: true,
+        isClicked: true
       };
     });
   }
@@ -73,7 +169,9 @@ class App extends Component {
   onClickReset() {
     this.setState({
       expression: '0',
-      result: 0
+      result: 0,
+      isClicked: false,
+      isCalculated: false
     });
   }
 
@@ -137,7 +235,7 @@ class App extends Component {
                 <Button onClick={this.onClickNumber} displayKey="3" />
               </td>
               <td rowSpan="2">
-                <Button displayKey="=" style={{ height: 132, background: '#458dcc' }} />
+                <Button onClick={this.onClickCalculate} displayKey="=" style={{ height: 132, background: '#458dcc' }} />
               </td>
             </tr>
             <tr>
@@ -145,7 +243,7 @@ class App extends Component {
                 <Button onClick={this.onClickNumber} displayKey="0" />
               </td>
               <td>
-                <Button displayKey="." />
+                <Button onClick={this.onClickDot} displayKey="." />
               </td>
             </tr>
           </tbody>
