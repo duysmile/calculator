@@ -125,18 +125,42 @@ class App extends Component {
           isClicked: true
         };
       }
-      if (isNaN(prevState.expression[length - 1])) {
-        return {
-          expression: prevState.result + '0' + op,
-          result: '0' + op,
-          isCalculated: false,
-          isClicked: true
-        };
+
+      let checkDot = prevState.expression[length - 1] == '.';
+
+      if (!checkDot) {
+        let hadNumber = false;
+        while (length > 0) {
+          if (!isNaN(prevState.expression[length - 1])) {
+            hadNumber = true;
+          } else {
+            if (prevState.expression[length - 1] != '.' && hadNumber) {
+              checkDot = false;
+              break;
+            } else if (prevState.expression[length - 1] != '.' && !hadNumber) {
+              return {
+                expression: prevState.expression + '0' + op,
+                result: '0' + op,
+                isCalculated: false,
+                isClicked: true
+              };
+            } else if (prevState.expression[length - 1] == '.') {
+              checkDot = true;
+              break;
+            }
+          }
+          length--;
+        }
       }
+
+      if (checkDot) {
+        return prevState;
+      }
+
       if (prevState.isCalculated) {
         return {
           expression: prevState.result + op,
-          result: op,
+          result: prevState.result + op,
           isCalculated: false,
           isClicked: true
         };
@@ -144,7 +168,7 @@ class App extends Component {
 
       return {
         expression: prevState.expression + op,
-        result: op,
+        result: prevState.result + op,
         isCalculated: false,
         isClicked: true
       };
@@ -156,7 +180,11 @@ class App extends Component {
       return;
     }
     this.setState((prevState) => {
-      let result = eval(prevState.expression);
+      let expression = prevState.expression.replace(/x/g, '*');
+      if (isNaN(expression[expression.length - 1]) && expression[expression.length - 1] != '.') {
+        return prevState;
+      }
+      let result = Math.round(eval(expression) * 10000000000) / 10000000000;
       return {
         expression: prevState.expression + '=' + result,
         result: result,
