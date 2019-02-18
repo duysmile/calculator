@@ -145,8 +145,10 @@ class App extends Component {
     this.setState((prevState) => {
       let expression = prevState.expression.replace(/x/g, '*');
       if (
-        !prevState.isClicked ||
-        (isNaN(expression[expression.length - 1]) && expression[expression.length - 1] != '.')
+        !prevState.isClicked
+        || (isNaN(expression[expression.length - 1]) && expression[expression.length - 1] != '.')
+        || expression[0] == '*'
+        || expression[0] == '/'
       ) {
         return prevState;
       }
