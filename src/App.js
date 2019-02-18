@@ -53,9 +53,12 @@ class App extends Component {
   onClickNumber(number) {
     this.setState((prevState) => {
       let expression = prevState.expression + number;
+      let length = prevState.expression.length;
 
       if (prevState.expression == '0' || prevState.isCalculated) {
         expression = number;
+      } else if (prevState.expression[length - 1] == '0') {
+        expression = prevState.expression.split('').slice(0, length - 1).join('') + number;
       }
 
       return {
