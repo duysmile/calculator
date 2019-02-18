@@ -52,25 +52,15 @@ class App extends Component {
 
   onClickNumber(number) {
     this.setState((prevState) => {
-      if (prevState.expression == '0') {
-        return {
-          expression: number,
-          result: number,
-          isCalculated: false,
-          isClicked: true
-        };
+      let expression = prevState.expression + number;
+
+      if (prevState.expression == '0' || prevState.isCalculated) {
+        expression = number;
       }
-      if (prevState.isCalculated) {
-        return {
-          expression: number,
-          result: number,
-          isCalculated: false,
-          isClicked: true
-        };
-      }
+
       return {
-        expression: prevState.expression + number,
-        result: prevState.expression + number,
+        expression: expression,
+        result: expression,
         isCalculated: false,
         isClicked: true
       };
@@ -78,35 +68,21 @@ class App extends Component {
   }
 
   onClickOperator(op) {
-    if (!this.state.isClicked) {
-      this.setState({
-        expression: op,
-        result: op,
-        isCalculated: false,
-        isClicked: true
-      });
-      return;
-    }
     this.setState((prevState) => {
-      if (prevState.isCalculated) {
-        return {
-          expression: prevState.result + op,
-          result: op,
-          isCalculated: false,
-          isClicked: true
-        };
+      let expression = prevState.expression + op;
+      if (!prevState.isClicked) {
+        expression = op;
+      } else if (prevState.isCalculated) {
+        expression = prevState.result + op;
+      } else {
+        let length = prevState.expression.length;
+        if (isNaN(prevState.expression[length - 1])) {
+          expression = prevState.expression.split('').slice(0, length - 1).join('') + op;
+        }
       }
-      let length = prevState.expression.length;
-      if (isNaN(prevState.expression[length - 1])) {
-        return {
-          expression: prevState.expression.split('').slice(0, length - 1).join('') + op,
-          result: op,
-          isCalculated: false,
-          isClicked: true
-        };
-      }
+
       return {
-        expression: prevState.expression + op,
+        expression: expression,
         result: op,
         isCalculated: false,
         isClicked: true
@@ -116,14 +92,12 @@ class App extends Component {
 
   onClickDot(op) {
     this.setState((prevState) => {
+      let expression = prevState.expression + op;
+      let result = prevState.result + op;
       let length = prevState.expression.length;
       if (!prevState.isClicked) {
-        return {
-          expression: '0' + op,
-          result: '0' + op,
-          isCalculated: false,
-          isClicked: true
-        };
+        expression = '0' + op;
+        result = '0' + op;
       }
 
       let checkDot = prevState.expression[length - 1] == '.';
@@ -138,12 +112,8 @@ class App extends Component {
               checkDot = false;
               break;
             } else if (prevState.expression[length - 1] != '.' && !hadNumber) {
-              return {
-                expression: prevState.expression + '0' + op,
-                result: '0' + op,
-                isCalculated: false,
-                isClicked: true
-              };
+              expression = prevState.expression + '0' + op;
+              result = '0' + op;
             } else if (prevState.expression[length - 1] == '.') {
               checkDot = true;
               break;
@@ -158,17 +128,13 @@ class App extends Component {
       }
 
       if (prevState.isCalculated) {
-        return {
-          expression: prevState.result + op,
-          result: prevState.result + op,
-          isCalculated: false,
-          isClicked: true
-        };
+        expression = prevState.result + op;
+        result = prevState.result + op;
       }
 
       return {
-        expression: prevState.expression + op,
-        result: prevState.result + op,
+        expression: expression,
+        result: result,
         isCalculated: false,
         isClicked: true
       };
@@ -176,12 +142,12 @@ class App extends Component {
   }
 
   onClickCalculate() {
-    if (!this.state.isClicked) {
-      return;
-    }
     this.setState((prevState) => {
       let expression = prevState.expression.replace(/x/g, '*');
-      if (isNaN(expression[expression.length - 1]) && expression[expression.length - 1] != '.') {
+      if (
+        !prevState.isClicked ||
+        (isNaN(expression[expression.length - 1]) && expression[expression.length - 1] != '.')
+      ) {
         return prevState;
       }
       let result = Math.round(eval(expression) * 10000000000) / 10000000000;
